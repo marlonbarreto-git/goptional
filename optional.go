@@ -1,5 +1,7 @@
 package goptional
 
+import "reflect"
+
 type (
 	Optional interface {
 		IsPresent() bool
@@ -42,7 +44,7 @@ func NewOptional(args ...Any) Optional {
 }
 
 func (optional *optional) IsPresent() bool {
-	return optional.value != nil
+	return !isNil(optional.value)
 }
 
 func (optional *optional) Get() (Any, Any) {
@@ -50,7 +52,7 @@ func (optional *optional) Get() (Any, Any) {
 }
 
 func (optional *optional) IfPresent(function IfFunc) {
-	if !optional.IsPresent() || optional.error != nil {
+	if !optional.IsPresent() || !isNil(optional.error) {
 		return
 	}
 
@@ -58,7 +60,7 @@ func (optional *optional) IfPresent(function IfFunc) {
 }
 
 func (optional *optional) Or(alternative Any, error ...Any) Optional {
-	if !optional.IsPresent() && optional.alternative == nil && error == nil {
+	if !optional.IsPresent() && isNil(optional.alternative) && isNil(error) {
 		optional.alternative = alternative
 	}
 
@@ -70,7 +72,7 @@ func (optional *optional) OrElse(alternative Any) Any {
 		return optional.value
 	}
 
-	if optional.alternative != nil {
+	if !isNil(optional.alternative) {
 		return optional.alternative
 	}
 
@@ -91,4 +93,9 @@ func (optional *optional) OrElsePanic(panicMsg string) Any {
 	}
 
 	return optional.value
+}
+
+func isNil(value interface{}) bool {
+	vo := reflect.ValueOf(value)
+	return !vo.IsValid() || vo.IsNil()
 }
