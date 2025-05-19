@@ -4,25 +4,23 @@ type (
 	Optional interface {
 		IsPresent() bool
 		IfPresent(function IfFunc)
-		Or(alternative Any, error ...Any) Optional
-		OrElse(alternative Any) Any
-		OrElseGet(supplier OrElseSupplier) Any
-		OrElsePanic(panicMsg string) Any
+		Or(alternative any, err ...any) Optional
+		OrElse(alternative any) any
+		OrElseGet(supplier OrElseSupplier) any
+		OrElsePanic(panicMsg string) any
 	}
 
 	optional struct {
-		value       Any
-		alternative Any
-		error       Any
+		value       any
+		alternative any
+		error       any
 	}
 
-	Any interface{}
-
-	IfFunc         func(value Any)
-	OrElseSupplier func() Any
+	IfFunc         func(value any)
+	OrElseSupplier func() any
 )
 
-func NewOptional(args ...Any) Optional {
+func NewOptional(args ...any) Optional {
 	switch len(args) {
 	case 0:
 		return &optional{}
@@ -45,7 +43,7 @@ func (optional *optional) IsPresent() bool {
 	return optional.value != nil
 }
 
-func (optional *optional) Get() (Any, Any) {
+func (optional *optional) Get() (any, any) {
 	return optional.value, optional.error
 }
 
@@ -57,15 +55,19 @@ func (optional *optional) IfPresent(function IfFunc) {
 	function(optional.value)
 }
 
-func (optional *optional) Or(alternative Any, error ...Any) Optional {
-	if !optional.IsPresent() && optional.alternative == nil && error == nil {
+func (optional *optional) Or(alternative any, err ...any) Optional {
+	if !optional.IsPresent() && optional.alternative == nil && len(err) == 0 {
 		optional.alternative = alternative
+	}
+
+	if len(err) > 0 {
+		optional.error = err[0]
 	}
 
 	return optional
 }
 
-func (optional *optional) OrElse(alternative Any) Any {
+func (optional *optional) OrElse(alternative any) any {
 	if optional.IsPresent() {
 		return optional.value
 	}
@@ -77,7 +79,7 @@ func (optional *optional) OrElse(alternative Any) Any {
 	return alternative
 }
 
-func (optional *optional) OrElseGet(supplier OrElseSupplier) Any {
+func (optional *optional) OrElseGet(supplier OrElseSupplier) any {
 	if optional.IsPresent() {
 		return optional.value
 	}
@@ -85,7 +87,7 @@ func (optional *optional) OrElseGet(supplier OrElseSupplier) Any {
 	return supplier()
 }
 
-func (optional *optional) OrElsePanic(panicMsg string) Any {
+func (optional *optional) OrElsePanic(panicMsg string) any {
 	if !optional.IsPresent() {
 		panic(panicMsg)
 	}
